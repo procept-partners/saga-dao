@@ -14,3 +14,5 @@ neardev
 
 **/nodemodules
 **/*.lock.json
+sputnikdao-factory2/res/sputnikdao_factory2.wasm
+sputnikdao2/res/sputnikdao2.wasm
