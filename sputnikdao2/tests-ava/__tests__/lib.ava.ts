@@ -7,6 +7,7 @@ import {
     DEFAULT_FUNCTION_CALL_GAS,
     Gas,
     NEAR,
+<<<<<<< HEAD
 } from 'near-workspaces';
 import {
     initStaking,
@@ -15,6 +16,16 @@ import {
     initWorkspace,
     Proposal,
     DAO_WASM_BYTES,
+=======
+} from 'near-workspaces-ava';
+import {
+    workspace,
+    initStaking,
+    initTestToken,
+    STORAGE_PER_BYTE,
+    workspaceWithoutInit,
+    workspaceWithFactory,
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 } from './utils';
 import { voteApprove } from './utils';
 import {
@@ -26,12 +37,127 @@ import {
     claimBounty,
     doneBounty,
 } from './utils';
+<<<<<<< HEAD
 
 
 const test = initWorkspace();
 
 test('Remove blob', async (t) => {
     const { root, dao, alice } = t.context.accounts;
+=======
+import * as fs from 'fs';
+
+const DAO_WASM_BYTES: Uint8Array = fs.readFileSync('../res/sputnikdao2.wasm');
+
+workspaceWithFactory.test(
+    'Upgrade self using factory',
+    async (test, { root, factory }) => {
+        const config = {
+            name: 'testdao',
+            purpose: 'to test',
+            metadata: '',
+        };
+        const policy = [root.accountId];
+        const params = {
+            config,
+            policy,
+        };
+
+        await root.call(
+            factory,
+            'create',
+            {
+                name: 'testdao',
+                args: Buffer.from(JSON.stringify(params)).toString('base64'),
+            },
+            {
+                attachedDeposit: toYocto('10'),
+                gas: tGas(300),
+            },
+        );
+
+        test.deepEqual(await factory.view('get_dao_list', {}), [
+            'testdao.factory.test.near',
+        ]);
+        const hash = await factory.view('get_default_code_hash', {});
+
+        const proposalId: number = await root.call(
+            'testdao.factory.test.near',
+            'add_proposal',
+            {
+                proposal: {
+                    description: 'proposal to test',
+                    kind: {
+                        UpgradeSelf: {
+                            hash: hash,
+                        },
+                    },
+                },
+            },
+            {
+                attachedDeposit: toYocto('1'),
+            },
+        );
+        test.is(proposalId, 0);
+
+        await root.call(
+            'testdao.factory.test.near',
+            'act_proposal',
+            {
+                id: proposalId,
+                action: 'VoteApprove',
+            },
+            {
+                gas: tGas(300),
+            },
+        );
+    },
+);
+
+workspaceWithoutInit.test(
+    'Upgrade self negative',
+    async (test, { root, dao }) => {
+        const config = { name: 'sputnik', purpose: 'testing', metadata: '' };
+
+        // NOT INITIALIZED
+        let err = await captureError(async () =>
+            root.call(dao, 'store_blob', DAO_WASM_BYTES, {
+                attachedDeposit: toYocto('200'),
+                gas: tGas(300),
+            }),
+        );
+        test.regex(err, /ERR_CONTRACT_IS_NOT_INITIALIZED/);
+
+        // Initializing contract
+        await root.call(dao, 'new', { config, policy: [root.accountId] });
+
+        // not enough deposit
+        err = await captureError(async () =>
+            root.call(dao, 'store_blob', DAO_WASM_BYTES, {
+                attachedDeposit: toYocto('1'),
+                gas: tGas(300),
+            }),
+        );
+        test.regex(err, /ERR_NOT_ENOUGH_DEPOSIT/);
+
+        await root.call(dao, 'store_blob', DAO_WASM_BYTES, {
+            attachedDeposit: toYocto('200'),
+            gas: tGas(300),
+        });
+
+        // Already exists
+        err = await captureError(async () =>
+            root.call(dao, 'store_blob', DAO_WASM_BYTES, {
+                attachedDeposit: toYocto('200'),
+                gas: tGas(300),
+            }),
+        );
+        test.regex(err, /ERR_ALREADY_EXISTS/);
+    },
+);
+
+workspace.test('Remove blob', async (test, { root, dao, alice }) => {
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
     const hash: String = await root.call(dao, 'store_blob', DAO_WASM_BYTES, {
         attachedDeposit: toYocto('200'),
         gas: tGas(300),
@@ -43,7 +169,11 @@ test('Remove blob', async (t) => {
             hash: 'HLBiX51txizmQzZJMrHMCq4u7iEEqNbaJppZ84yW7628', // some_random hash
         }),
     );
+<<<<<<< HEAD
     t.regex(err, /ERR_NO_BLOB/);
+=======
+    test.regex(err, /ERR_NO_BLOB/);
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 
     // Can only be called by the original storer
     err = await captureError(async () =>
@@ -51,7 +181,11 @@ test('Remove blob', async (t) => {
             hash: hash,
         }),
     );
+<<<<<<< HEAD
     t.regex(err, /ERR_INVALID_CALLER/);
+=======
+    test.regex(err, /ERR_INVALID_CALLER/);
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 
     // blob is removed with payback
     const rootAmountBeforeRemove = (await root.balance()).total;
@@ -59,6 +193,7 @@ test('Remove blob', async (t) => {
         hash: hash,
     });
     const rootAmountAfterRemove = (await root.balance()).total;
+<<<<<<< HEAD
     t.false(await dao.view('has_blob', { hash: hash }));
     t.assert(rootAmountAfterRemove.gt(rootAmountBeforeRemove));
 });
@@ -67,17 +202,31 @@ test(
     'Callback for BountyDone with NEAR token',
     async (t) => {
         const { alice, root, dao } = t.context.accounts;
+=======
+    test.false(await dao.view('has_blob', { hash: hash }));
+    test.assert(rootAmountAfterRemove.gt(rootAmountBeforeRemove));
+});
+
+workspace.test(
+    'Callback for BountyDone with NEAR token',
+    async (test, { alice, root, dao }) => {
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
         //During the callback the number bounty_claims_count should decrease
         const proposalId = await proposeBountyWithNear(alice, dao);
         await voteOnBounty(root, dao, proposalId);
         await claimBounty(alice, dao, proposalId);
         await doneBounty(alice, alice, dao, proposalId);
         //Before the bounty is done there is 1 claim
+<<<<<<< HEAD
         t.is(await dao.view('get_bounty_number_of_claims', { id: 0 }), 1);
+=======
+        test.is(await dao.view('get_bounty_number_of_claims', { id: 0 }), 1);
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
         const balanceBefore: NEAR = (await alice.balance()).total;
         //During the callback this number is decreased
         await voteOnBounty(root, dao, proposalId + 1);
         const balanceAfter: NEAR = (await alice.balance()).total;
+<<<<<<< HEAD
         t.is(await dao.view('get_bounty_number_of_claims', { id: 0 }), 0);
         t.assert(balanceBefore.lt(balanceAfter));
     },
@@ -87,6 +236,16 @@ test(
     'Callback for BountyDone ft token fail',
     async (t) => {
         const { alice, root, dao } = t.context.accounts;
+=======
+        test.is(await dao.view('get_bounty_number_of_claims', { id: 0 }), 0);
+        test.assert(balanceBefore.lt(balanceAfter));
+    },
+);
+
+workspace.test(
+    'Callback for BountyDone ft token fail',
+    async (test, { alice, root, dao }) => {
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
         //Test the callback with Failed proposal status
         const testTokenFail = await initTestToken(root);
         const proposalIdFail = await proposeBounty(alice, dao, testTokenFail);
@@ -117,6 +276,7 @@ test(
         await doneBounty(alice, alice, dao, proposalIdFail);
         await voteOnBounty(root, dao, proposalIdFail + 1);
         //Proposal should be Failed
+<<<<<<< HEAD
         let { status }: Proposal = await dao.view('get_proposal', {
             id: proposalIdFail + 1,
         });
@@ -128,6 +288,18 @@ test(
     'Callback for BountyDone ft token',
     async (t) => {
         const { alice, root, dao } = t.context.accounts;
+=======
+        let { status } = await dao.view('get_proposal', {
+            id: proposalIdFail + 1,
+        });
+        test.is(status, 'Failed');
+    },
+);
+
+workspace.test(
+    'Callback for BountyDone ft token',
+    async (test, { alice, root, dao }) => {
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
         //Test correct callback
         const testToken = await initTestToken(root);
         await dao.call(
@@ -180,12 +352,17 @@ test(
         await claimBounty(alice, dao, proposalId);
         await doneBounty(alice, alice, dao, proposalId);
         //Before the bounty is done there is 1 claim
+<<<<<<< HEAD
         t.is(await dao.view('get_bounty_number_of_claims', { id: 0 }), 1);
+=======
+        test.is(await dao.view('get_bounty_number_of_claims', { id: 0 }), 1);
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
         const balanceBefore: NEAR = (await alice.balance()).total;
         //During the callback this number is decreased
         await voteOnBounty(root, dao, proposalId + 1);
 
         //Proposal should be approved
+<<<<<<< HEAD
         let { status } : Proposal = await dao.view('get_proposal', { id: proposalId + 1 });
         t.is(status, 'Approved');
 
@@ -199,6 +376,20 @@ test(
 test('Callback transfer', async (t) => {
     const { alice, root, dao } = t.context.accounts;
     const user1 = await root.createSubAccount('user1');
+=======
+        let { status } = await dao.view('get_proposal', { id: proposalId + 1 });
+        test.is(status, 'Approved');
+
+        //During the callback the number bounty_claims_count should decrease
+        const balanceAfter: NEAR = (await alice.balance()).total;
+        test.is(await dao.view('get_bounty_number_of_claims', { id: 0 }), 0);
+        test.assert(balanceBefore.lt(balanceAfter));
+    },
+);
+
+workspace.test('Callback transfer', async (test, { alice, root, dao }) => {
+    const user1 = await root.createAccount('user1');
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
     // Fail transfer by transfering to non-existent accountId
     let transferId: number = await user1.call(
         dao,
@@ -219,9 +410,15 @@ test('Callback transfer', async (t) => {
     );
     let user1Balance = (await user1.balance()).total;
     await voteApprove(root, dao, transferId);
+<<<<<<< HEAD
     let { status } : Proposal  = await dao.view('get_proposal', { id: transferId });
     t.is(status, 'Failed');
     t.assert((await user1.balance()).total.eq(user1Balance)); // no bond returns on fail
+=======
+    let { status } = await dao.view('get_proposal', { id: transferId });
+    test.is(status, 'Failed');
+    test.assert((await user1.balance()).total.eq(user1Balance)); // no bond returns on fail
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 
     // now we transfer to real accountId
     transferId = await user1.call(
@@ -243,6 +440,7 @@ test('Callback transfer', async (t) => {
     );
     user1Balance = (await user1.balance()).total;
     await voteApprove(root, dao, transferId);
+<<<<<<< HEAD
     ({ status } = await dao.view('get_proposal', { id: transferId }) as Proposal );
     t.is(status, 'Approved');
     t.assert((await user1.balance()).total.gt(user1Balance)); // returns bond
@@ -250,6 +448,14 @@ test('Callback transfer', async (t) => {
 
 test('Callback function call', async (t) => {
     const { alice, root, dao } = t.context.accounts;
+=======
+    ({ status } = await dao.view('get_proposal', { id: transferId }));
+    test.is(status, 'Approved');
+    test.assert((await user1.balance()).total.gt(user1Balance)); // returns bond
+});
+
+workspace.test('Callback function call', async (test, { alice, root, dao }) => {
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
     const testToken = await initTestToken(root);
     let transferId: number = await root.call(
         dao,
@@ -287,8 +493,13 @@ test('Callback function call', async (t) => {
             gas: tGas(200),
         },
     );
+<<<<<<< HEAD
     let { status } : Proposal = await dao.view('get_proposal', { id: transferId });
     t.is(status, 'Failed');
+=======
+    let { status } = await dao.view('get_proposal', { id: transferId });
+    test.is(status, 'Failed');
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 
     transferId = await root.call(
         dao,
@@ -338,6 +549,11 @@ test('Callback function call', async (t) => {
             gas: tGas(200),
         },
     );
+<<<<<<< HEAD
     ({ status } = await dao.view('get_proposal', { id: transferId }) as Proposal);
     t.is(status, 'Approved');
+=======
+    ({ status } = await dao.view('get_proposal', { id: transferId }));
+    test.is(status, 'Approved');
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 });

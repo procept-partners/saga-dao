@@ -15,10 +15,13 @@ const ON_CREATE_CALL_GAS: Gas = Gas(10_000_000_000_000);
 /// Leftover gas after creating promise and calling update.
 const GAS_UPDATE_LEFTOVER: Gas = Gas(10_000_000_000_000);
 
+<<<<<<< HEAD
 /// Since Nightshade V2, the send_not_sir of action_function_call_per_byte increase to this value, please refer to: 
 /// https://github.com/near/nearcore/blob/0c2374993fc74b57faf2bcdf5c7c73a37e82b75a/core/parameters/res/runtime_configs/parameters.snap#L52
 pub const GAS_FUNCTION_CALL_PER_BYTE: u64 = 47_683_715;
 
+=======
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 const NO_DEPOSIT: Balance = 0;
 
 /// Factory manager that allows to store/load contracts by hash directly in the storage.
@@ -72,7 +75,10 @@ impl FactoryManager {
         assert!(env::storage_has_key(&code_hash), "Contract doesn't exist");
         // Load the hash from storage.
         let code = env::storage_read(&code_hash).expect("ERR_NO_HASH");
+<<<<<<< HEAD
         let wasm_argument_gas = Gas(code.len() as u64 * GAS_FUNCTION_CALL_PER_BYTE);
+=======
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
         // Create a promise toward given account.
         let promise_id = env::promise_batch_create(&account_id);
         // Call `update` method, which should also handle migrations.
@@ -81,7 +87,11 @@ impl FactoryManager {
             method_name,
             &code,
             NO_DEPOSIT,
+<<<<<<< HEAD
             env::prepaid_gas() - env::used_gas() - GAS_UPDATE_LEFTOVER - wasm_argument_gas,
+=======
+            env::prepaid_gas() - env::used_gas() - GAS_UPDATE_LEFTOVER,
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
         );
         env::promise_return(promise_id);
     }

@@ -4,8 +4,12 @@ members = [
   "sputnik-staking",
   "sputnikdao2",
   "sputnikdao-factory2",
+<<<<<<< HEAD
   "test-token",
   "voting"
+=======
+  "test-token"
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 ]
 
 [profile.release]

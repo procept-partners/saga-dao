@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Worker, NearAccount, BN, toYocto, tGas, KeyPair } from 'near-workspaces';
 import anyTest, { TestFn } from 'ava';
 import * as fs from 'fs';
@@ -112,6 +113,66 @@ export async function initTestToken(root: NearAccount) {
         },
         initialBalance: toYocto('200'),
     });
+=======
+import { Workspace, NearAccount, BN, toYocto, tGas } from 'near-workspaces-ava';
+
+async function initWorkspace(root: NearAccount) {
+    const alice = await root.createAccount('alice');
+    // console.log('alice\'s balance is: ' + (await alice.balance()).total) //100N
+
+    const config = { name: 'sputnik', purpose: 'testing', metadata: '' };
+    const policy = [root.accountId];
+
+    //for short let's call it just dao
+    const dao = await root.createAndDeploy('dao', '../res/sputnikdao2.wasm', {
+        method: 'new',
+        args: { config, policy },
+        initialBalance: toYocto('200'),
+    });
+
+    // console.log('dao\'s balance is: ' + (await dao.balance()).total) //~200N
+
+    return { alice, dao };
+}
+
+export const STORAGE_PER_BYTE = new BN('10000000000000000000');
+
+export const workspace = Workspace.init(async ({ root }) => {
+    return initWorkspace(root);
+});
+
+export const workspaceWithoutInit = Workspace.init(async ({ root }) => {
+    const alice = await root.createAccount('alice');
+
+    //for short let's call it just dao
+    const dao = await root.createAndDeploy('dao', '../res/sputnikdao2.wasm', {
+        initialBalance: toYocto('200'),
+    });
+    return { alice, dao };
+});
+
+export const workspaceWithFactory = Workspace.init(async ({ root }) => {
+    const factory = await root.createAndDeploy(
+        'factory',
+        '../../sputnikdao-factory2/res/sputnikdao_factory2.wasm',
+        {
+            initialBalance: toYocto('500'),
+        },
+    );
+    await factory.call(factory.accountId, 'new', {}, { gas: tGas(300) });
+    return { factory };
+});
+
+export async function initTestToken(root: NearAccount) {
+    const testToken = await root.createAndDeploy(
+        'test-token',
+        '../../test-token/res/test_token.wasm',
+        {
+            method: 'new',
+            initialBalance: toYocto('200'),
+        },
+    );
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
     return testToken;
 }
 
@@ -120,20 +181,34 @@ export async function initStaking(
     dao: NearAccount,
     testToken: NearAccount,
 ) {
+<<<<<<< HEAD
     const staking = await deployAndInit({
         root,
         subContractId: 'staking',
         code: '../../sputnik-staking/res/sputnik_staking.wasm',
         init: {
             methodName: 'new',
+=======
+    const staking = await root.createAndDeploy(
+        'staking',
+        '../../sputnik-staking/res/sputnik_staking.wasm',
+        {
+            method: 'new',
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
             args: {
                 owner_id: dao,
                 token_id: testToken,
                 unstake_period: '100000000000',
             },
+<<<<<<< HEAD
         },
         initialBalance: toYocto('100'),
     });
+=======
+            initialBalance: toYocto('100'),
+        },
+    );
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
     return staking;
 }
 
@@ -163,7 +238,10 @@ export async function setStakingId(
 }
 
 export const regCost = STORAGE_PER_BYTE.mul(new BN(16));
+<<<<<<< HEAD
 export const DAO_WASM_BYTES: Uint8Array = fs.readFileSync('../res/sputnikdao2.wasm');
+=======
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 
 export async function registerAndDelegate(
     dao: NearAccount,
@@ -319,7 +397,11 @@ export async function giveupBountyRaw(
     dao: NearAccount,
     proposalId: number,
 ) {
+<<<<<<< HEAD
     return await alice.callRaw(dao, 'bounty_giveup', { id: proposalId });
+=======
+    return await alice.call_raw(dao, 'bounty_giveup', { id: proposalId });
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 }
 
 export async function voteApprove(
@@ -339,9 +421,12 @@ export async function voteApprove(
         },
     );
 }
+<<<<<<< HEAD
 
 export type ProposalStatus = 'InProgress' | 'Approved' | 'Rejected' | 'Removed' | 'Expired' | 'Moved' | 'Failed';
 
 export interface Proposal {
     status: ProposalStatus
 };
+=======
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c

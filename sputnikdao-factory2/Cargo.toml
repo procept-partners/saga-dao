@@ -1,6 +1,10 @@
 [package]
 name = "sputnikdao-factory2"
+<<<<<<< HEAD
 version = "0.2.1"
+=======
+version = "0.2.0"
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 authors = ["Illia Polosukhin <illia.polosukhin@gmail.com>"]
 edition = "2018"
 publish = false

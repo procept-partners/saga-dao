@@ -1,5 +1,8 @@
 mod factory_manager;
+<<<<<<< HEAD
 //mod voting;
+=======
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{UnorderedMap, UnorderedSet};
@@ -9,7 +12,10 @@ use near_sdk::serde_json::{self, json};
 use near_sdk::{env, near_bindgen, AccountId, Balance, CryptoHash, Gas, PanicOnDefault, Promise};
 
 use factory_manager::FactoryManager;
+<<<<<<< HEAD
 //use voting::VotingModule;
+=======
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 
 type Version = [u8; 2];
 
@@ -25,7 +31,11 @@ const DAO_CONTRACT_NO_DATA: &str = "no data";
 
 // Gas & Costs for blob storage
 const GAS_STORE_CONTRACT_LEFTOVER: Gas = Gas(20_000_000_000_000);
+<<<<<<< HEAD
 const ON_REMOVE_CONTRACT_GAS: Gas = Gas(20_000_000_000_000);
+=======
+const ON_REMOVE_CONTRACT_GAS: Gas = Gas(10_000_000_000_000);
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
 const NO_DEPOSIT: Balance = 0;
 
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
@@ -60,6 +70,7 @@ impl SputnikDAOFactory {
         this
     }
 
+<<<<<<< HEAD
     pub fn vote(&mut self, proposal_id: u64, vote: bool) -> Promise {
         let voting_module: AccountId = "mrsky.testnet".parse().unwrap();
         Promise::new(voting_module)
@@ -76,6 +87,8 @@ impl SputnikDAOFactory {
             )
     }
 
+=======
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
     fn internal_store_initial_contract(&self) {
         self.assert_owner();
         let code = DAO_CONTRACT_INITIAL_CODE.to_vec();

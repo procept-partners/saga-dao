@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "compilerOptions": {
     "target": "ES2019",
     "module": "commonjs",
@@ -11,3 +12,7 @@
     "forceConsistentCasingInFileNames": true
   }
 }
+=======
+  "extends": "near-workspaces-ava/tsconfig.ava.json"
+}
+>>>>>>> 4c04023d81c526af92d771dc71a1f2216de3f45c
