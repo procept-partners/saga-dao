@@ -188,3 +188,12 @@ pub struct TaskFeedback {
     pub rating: u8,
     pub created_at: String,
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct ManaBalancesProof {
+    mana_balance: U128,
+    collateral_mana_balance: U128,
+    signature: Vec<u8>, // Signature from Aurora
+    signer_address: String, // Aurora signer address
+}
