@@ -1,13 +1,11 @@
-// voting.rs
-
 use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-use near_sdk::collections::{UnorderedMap};
-use near_sdk::{AccountId, env, require};
+use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require, near_bindgen};
 use near_sdk::json_types::U128;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
-use crate::mana_structs::{ManaBalancesProof}; // Import ManaBalancesProof here
+use crate::mana_structs::ManaBalancesProof; // Import ManaBalancesProof here
 use aurora_engine_sdk::proof::verify_proof;
 
 // Enums for Project Plan and Project Execution statuses
@@ -62,16 +60,42 @@ pub struct VotingModule {
 
 #[near_bindgen]
 impl VotingModule {
+    // Decodes proof data and returns necessary fields for verification
+    fn decode_proof(proof: ManaBalancesProof) -> Result<(U128, U128, u64, AccountId), String> {
+        let mana_balance = proof.mana_balance;
+        let collateral_balance = proof.collateral_mana_balance;
+        let voting_power = proof.voting_power;
+        let signer_address = proof.signer_address.clone();
+
+        if signer_address.is_empty() {
+            return Err("Invalid proof: signer address is missing.".to_string());
+        }
+
+        Ok((mana_balance, collateral_balance, voting_power, signer_address))
+    }
+
     // Verifies the Aurora proof of mana and collateralized mana balances for governance voting
     pub fn verify_aurora_proof(
         &self,
         proof: ManaBalancesProof,
         account_id: AccountId,
     ) -> bool {
-        let message = format!("{}{}{}", account_id, proof.mana_balance.0, proof.collateral_mana_balance.0);
+        // Step 1: Decode and map the proof data
+        let (mana_balance, collateral_balance, voting_power, signer_address) =
+            match Self::decode_proof(proof) {
+                Ok(decoded_data) => decoded_data,
+                Err(e) => {
+                    env::log_str(&format!("Failed to decode proof: {}", e));
+                    return false;
+                }
+            };
+    
+        // Step 2: Construct message for verification
+        let message = format!("{}{}{}", account_id, mana_balance.0, collateral_balance.0);
         let message_hash = env::sha256(message.as_bytes());
-
-        match verify_proof(&proof.signer_address, &message_hash, &proof.signature) {
+    
+        // Step 3: Verify proof using the signer's address and signature
+        match verify_proof(&signer_address, &message_hash, &proof.signature) {
             true => {
                 env::log_str("Signature verified, proof is trusted");
                 true
@@ -158,13 +182,27 @@ impl GovernanceDataContract {
         transaction_id: u64,
     ) -> bool {
         if let Some(data) = self.governance_data.get(&account_id) {
-            data.mana_balance == mana_balance &&
-            data.mana_collateral_balance == mana_collateral_balance &&
-            data.voting_power == voting_power &&
-            data.transaction_id == Some(transaction_id)
+            if data.mana_balance != mana_balance {
+                env::log_str("Verification failed: MANA balance mismatch.");
+                return false;
+            }
+            if data.mana_collateral_balance != mana_collateral_balance {
+                env::log_str("Verification failed: Collateral MANA balance mismatch.");
+                return false;
+            }
+            if data.voting_power != voting_power {
+                env::log_str("Verification failed: Voting power mismatch.");
+                return false;
+            }
+            if data.transaction_id != Some(transaction_id) {
+                env::log_str("Verification failed: Transaction ID mismatch.");
+                return false;
+            }
+            true
         } else {
-            env::log_str("Verification failed: data mismatch or missing transaction ID.");
+            env::log_str("Verification failed: No governance data for account.");
             false
         }
     }
 }
+
