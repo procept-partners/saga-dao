@@ -25,6 +25,7 @@ impl Contract {
                 proposals: UnorderedMap::new(b"r"),
                 project_plan_votes: UnorderedMap::new(b"v"),
                 project_execution_votes: UnorderedMap::new(b"e"),
+                governance_data: UnorderedMap::new(b"g"),
             },
         }
     }
