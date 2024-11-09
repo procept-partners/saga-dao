@@ -1,7 +1,5 @@
-// proposals.rs
-
 use near_sdk::collections::{UnorderedMap, UnorderedSet};
-use near_sdk::{AccountId, BorshStorageKey, env};
+use near_sdk::{AccountId, BorshStorageKey, env, log};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::json_types::U128;
 use serde_json::json;
@@ -77,6 +75,13 @@ impl Proposal {
         if total_votes >= 1 {
             if self.votes_for.0 > self.votes_against.0 {
                 self.status = ProposalStatus::Passed;
+
+                // Emit an event log for a passed proposal
+                log!("Proposal Passed: {{ \"id\": {}, \"title\": \"{}\", \"approved_votes\": {}, \"required_action\": \"Mint Tokens\" }}", 
+                    self.id, 
+                    self.title, 
+                    self.votes_for.0
+                );
             } else {
                 self.status = ProposalStatus::Rejected;
             }
