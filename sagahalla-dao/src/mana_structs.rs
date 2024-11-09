@@ -22,8 +22,8 @@ pub struct Proposal {
     pub id: u64,
     pub title: String,
     pub description: Option<String>,
-    pub yes_votes: u64,
-    pub no_votes: u64,
+    pub votes_for: u64,      // Updated from `yes_votes`
+    pub votes_against: u64,  // Updated from `no_votes`
     pub mana_tokens_allocated: U128,
     pub is_ended: bool,
     pub submitted_by: AccountId,
@@ -49,7 +49,6 @@ pub struct ProposalBudget {
 
 // SubProject struct within a proposal
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct SubProject {
     pub id: u64,
     pub proposal_id: Option<u64>, // Optional to support nested subprojects linked to a parent proposal
@@ -59,7 +58,6 @@ pub struct SubProject {
 
 // Epic struct within a SubProject
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct Epic {
     pub id: u64,
     pub sub_project_id: Option<u64>,
@@ -69,7 +67,6 @@ pub struct Epic {
 
 // Task struct within an Epic with a unified status field
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct Task {
     pub id: u64,
     pub epic_id: Option<u64>,
@@ -80,7 +77,6 @@ pub struct Task {
 
 // Role Mana Hours within a Task
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct TaskRoleManaHours {
     pub id: u64,
     pub task_id: u64,
@@ -90,7 +86,6 @@ pub struct TaskRoleManaHours {
 
 // Main struct for Project Plan
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct ProjectPlan {
     pub id: u64,
     pub proposal_id: Option<u64>, // Optional to support standalone project plans
@@ -105,7 +100,6 @@ pub struct ProjectPlan {
 
 // Developer-specific project plan details
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct DeveloperProjectPlan {
     pub developer_name: String,
     pub mana_hours_budgeted: u64,
@@ -115,7 +109,6 @@ pub struct DeveloperProjectPlan {
 
 // Struct for SubProjectPlan within a project plan
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct SubProjectPlan {
     pub id: u64,
     pub project_plan_id: u64,
@@ -125,7 +118,6 @@ pub struct SubProjectPlan {
 
 // Struct for EpicPlan within a subproject plan
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct EpicPlan {
     pub id: u64,
     pub sub_project_plan_id: u64,
@@ -135,7 +127,6 @@ pub struct EpicPlan {
 
 // Struct for TaskPlan within an epic plan, now with unified status tracking
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct TaskPlan {
     pub id: u64,
     pub epic_plan_id: u64,
@@ -145,20 +136,17 @@ pub struct TaskPlan {
     pub status: TaskStatus, // Unified status field for the task's lifecycle
 }
 
-// Main struct for Project Execution, linked to ProjectPlan by project_plan_id
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct ProjectExecution {
     pub id: u64,
-    pub project_plan_id: u64, // Link to parent ProjectPlan
+    pub project_plan_id: u64,
     pub actual_mana_hours: u64,
-    pub tasks: Vec<TaskExecution>, // Tracks task execution status based on ProjectPlan tasks
-    pub peer_votes: Vec<PeerVote>,
+    pub tasks: Vec<TaskExecution>,
+    pub peer_votes: Vec<PeerVote>,  // Updated peer votes to include weighted governance power
 }
 
 // Task Execution struct within a project execution, linked to TaskPlan
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct TaskExecution {
     pub id: u64,
     pub project_execution_id: u64,
@@ -167,20 +155,18 @@ pub struct TaskExecution {
     pub status: TaskStatus, // Unified status for tracking task execution progress
 }
 
-// Peer vote struct for project execution feedback
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct PeerVote {
     pub id: u64,
     pub project_execution_id: u64,
-    pub user_id: u64,
+    pub user_id: AccountId,
+    pub project_governance_power: u64,  // Incorporate governance power directly in PeerVote
     pub vote: bool,
     pub created_at: String,
 }
 
 // Task Feedback struct within task execution
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
-#[serde(crate = "near_sdk::serde")]
 pub struct TaskFeedback {
     pub id: u64,
     pub task_execution_id: u64,
@@ -217,3 +203,4 @@ impl ManaBalancesProof {
         }
     }
 }
+
